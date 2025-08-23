@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-/* ================== SEO + ШРИФТЫ ================== */
+/* ================== SEO + ШРИФТЫ ================= */
 function injectSEO() {
   if (typeof document === "undefined") return;
 

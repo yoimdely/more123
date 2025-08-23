@@ -2,31 +2,44 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!-- Yandex.Webmaster -->
-    
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
 
     <!-- SEO / OG -->
-    <meta name="description" content="ЖК Просторы Крыма в пгт Приморский (Феодосия): 1,4 км до моря, монолит-кирпич, 6–10 этажей, предчистовая или с ремонтом, эскроу 214-ФЗ. Планировки, цены, очереди.">
-    <meta property="og:title" content="Просторы Крыма — жилой квартал у моря">
-    <meta property="og:description" content="1,4 км до моря, монолит-кирпич, предчистовая/с ремонтом. Планировки, цены, очереди.">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="/og-image.jpg">
+    <meta
+      name="description"
+      content="ЖК «Море» в Крыму: комфорт-класс у моря, монолит-кирпич, благоустроенные дворы, детские и спортивные площадки, виды на Чёрное море. Планировки, цены, сроки, контакт."
+    />
+    <meta
+      property="og:title"
+      content="ЖК «Море» — жилой квартал у моря, Крым"
+    />
+    <meta
+      property="og:description"
+      content="1,2 км до моря, монолит-кирпич, предчистовая/с ремонтом. Планировки, цены, очереди."
+    />
+    <meta property="og:type" content="website" />
+    <!-- og:image можно оставить относительным — будет искаться рядом с index.html -->
+    <meta property="og:image" content="og-image.jpg" />
 
+    <!-- Иконка сайта (положи favicon.svg в папку public) -->
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <title>Просторы Крыма — жилой квартал у моря в Приморском (Феодосия)</title>
 
-    <!-- Yandex.Metrika counter (скрипт можно держать в head) -->
-  
-    <!-- /Yandex.Metrika counter -->
+    <title>ЖК «Море» — жилой квартал у моря, Крым</title>
+
+
   </head>
 
   <body>
-    <!-- НОСКРИПТ ДОЛЖЕН БЫТЬ В BODY! -->
-   
+    <!-- Если используешь Метрику — НОСКРИПТ ДОЛЖЕН БЫТЬ ТОЛЬКО В BODY
+    <noscript><div><img src="https://mc.yandex.ru/watch/12345678" style="position:absolute; left:-9999px;" alt=""/></div></noscript>
+    -->
 
     <div id="root"></div>
+
+    <!-- Vite сам преобразует это в корректные пути с учётом base -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

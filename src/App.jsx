@@ -1,178 +1,189 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Home, MapPin, Menu, X,
   Waves, Building2, Bath, ParkingSquare, Ruler,
   FileText, CircuitBoard, ShieldCheck, Hammer,
   School, HeartHandshake, Store, Bike, Baby, Trees,
-  Dumbbell, FileSignature, Handshake, KeyRound, Banknote,
-  ArrowUp, Image as ImageIcon, Sparkles
+  Dumbbell, FileSignature, Handshake, KeyRound, Banknote, ArrowUp
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-/* =========================
-   НАСТРОЙКИ/ДАННЫЕ ДЛЯ ЖК «Море»
-   Всё, что нужно уточнить по сайту застройщика — лежит здесь.
-   Когда дашь ссылку, подставлю точные факты.
-========================= */
-const MORE = {
-  name: "ЖК «Море»",
-  subtitle: "жилой квартал у моря",
-  cityline: "Крым · у моря",
-  locationText:
-    "Крым, побережье Чёрного моря. Удобная транспортная доступность, рядом набережные и прогулочные аллеи.",
-  distanceToSea: "≈ 1,2–1,6 км",
-  floors: "6–10",
-  ceiling: "до ~3,0 м",
-  parking: "> 1 000",
-  tech: [
-    "Монолит-кирпич",
-    "Панорамное остекление",
-    "Современные инженерные системы",
-    "Возможны форматы отделки: предчистовая / с ремонтом (по корпусам)"
-  ],
-  legal:
-    "Договор участия в долевом строительстве с использованием эскроу-счетов (214-ФЗ).",
-  phasing: [
-    { q: "Очередь 1", s: "ориентир — 2026", c: "Запуск первых корпусов" },
-    { q: "Очередь 2", s: "ориентир — 2027", c: "Продолжение строительства" },
-    { q: "Очередь 3", s: "ориентир — 2028", c: "Инфраструктура и благоустройство" }
-  ],
-  plansInfo:
-    "Планировки от компактных студий до семейных 2–3-комнатных вариантов. Функциональные кухни-гостиные, лоджии, продуманные площади.",
-  benefitsOwner: [
-    "Ликвидность для аренды/перепродажи",
-    "Энергоэффективность и комфорт",
-    "Дворы без машин, детские/спорт-площадки",
-    "Коммерция в шаговой доступности"
-  ],
-  infra: {
-    family: ["Детские сады", "Современные школы", "Дворы без машин"],
-    active: ["Спортплощадки и воркаут-зоны", "Аллеи для прогулок", "Близость к пляжам"],
-    service: ["Торговые галереи и кафе", "Аптеки и сервисы", "Гостевой и многоуровневый паркинг"]
-  },
-  plans: [
-    { t: "Студии", d: "Компактные форматы для инвестиций и отдыха" },
-    { t: "1-комнатные", d: "Кухни-гостиные, удобные метражи, лоджии" },
-    { t: "2–3-комнатные", d: "Семейные планировки, увеличенные кухни" }
-  ],
-  gallery: [
-    "/media/more/1.jpeg",
-    "/media/more/2.jpeg",
-    "/media/more/3.jpeg",
-    "/media/more/4.jpeg"
-  ],
-  heroImage: "/media/more/hero.jpeg" // положи в /public/media/more/hero.jpeg
-};
+/* ================= SEO + ФОНТЫ ================= */
+function injectSEO() {
+  if (typeof document === "undefined") return;
 
-// Мета + title
-function useSEO() {
-  useEffect(() => {
-    document.title = `${MORE.name} — ${MORE.subtitle}`;
-    const safeSet = (selector, attr, content) => {
-      let el = document.querySelector(selector);
-      if (!el) {
-        el = document.createElement("meta");
-        if (selector.includes('name=')) el.setAttribute("name", selector.match(/name="([^"]+)/)[1]);
-        if (selector.includes('property=')) el.setAttribute("property", selector.match(/property="([^"]+)/)[1]);
-        document.head.appendChild(el);
-      }
-      el.setAttribute(attr, content);
-    };
-    safeSet('meta[name="description"]', "content",
-      `${MORE.name}: ${MORE.subtitle}. ${MORE.locationText} ${MORE.plansInfo}`);
-    safeSet('meta[property="og:title"]', "content", `${MORE.name} — ${MORE.subtitle}`);
-    safeSet('meta[property="og:description"]', "content", `${MORE.plansInfo}`);
-    safeSet('meta[property="og:type"]', "content", "website");
-    safeSet('meta[property="og:image"]', "content", "/og-image.jpg");
-  }, []);
+  document.title = "ЖК «Море» — Евпатория, квартал у Мойнакского озера";
+
+  const meta = [
+    { name: "description", content: "ЖК «Море» в Евпатории: 12 домов комфорт-класса у озера Мойнаки, школа и детсад, торговая галерея, спорт- и детские зоны, паркинги. Эскроу, 214-ФЗ." },
+    { property: "og:title", content: "ЖК «Море» — Евпатория, квартал у Мойнакского озера" },
+    { property: "og:description", content: "Студии, 1–3-комн., благоустроенные дворы, инфраструктура рядом с морем. Планировки, сроки, очереди, условия покупки." },
+    { property: "og:type", content: "website" },
+    { property: "og:image", content: "/og-image.jpg" },
+    { property: "og:url", content: typeof location !== "undefined" ? location.href : "https://example.com/" }
+  ];
+
+  meta.forEach((m) => {
+    const key = m.name ? "name" : "property";
+    let el = document.querySelector(`meta[${key}="${m.name || m.property}"]`);
+    if (!el) {
+      el = document.createElement("meta");
+      el.setAttribute(key, m.name || m.property);
+      document.head.appendChild(el);
+    }
+    el.setAttribute("content", m.content);
+  });
+
+  // canonical
+  let link = document.querySelector('link[rel="canonical"]');
+  if (!link) {
+    link = document.createElement("link");
+    link.rel = "canonical";
+    document.head.appendChild(link);
+  }
+  link.href = typeof location !== "undefined" ? location.href : "https://example.com/";
+
+  // preload hero
+  let pl = document.querySelector('link[rel="preload"][as="image"]');
+  if (!pl) {
+    pl = document.createElement("link");
+    pl.rel = "preload";
+    pl.as = "image";
+    pl.href = "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1600&auto=format&fit=crop";
+    document.head.appendChild(pl);
+  }
 }
 
-function Pill({ icon, children }) {
+function injectFonts() {
+  if (typeof document === "undefined") return;
+  const links = [
+    { rel: "preconnect", href: "https://fonts.googleapis.com" },
+    { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
+    { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Prata&display=swap" }
+  ];
+  links.forEach(cfg => {
+    const l = document.createElement("link");
+    Object.entries(cfg).forEach(([k, v]) => v !== undefined && l.setAttribute(k, v));
+    document.head.appendChild(l);
+  });
+}
+
+/* ================= ВСПОМОГАТЕЛЬНЫЕ UI ================= */
+function Stat({ value, label, sub, icon }) {
+  return (
+    <div className="p-5 rounded-2xl border h-full relative overflow-hidden"
+      style={{ borderColor: "#EAD6C4", backgroundColor: "#FFFFFF", color: "#2B2118" }}>
+      <div className="absolute -top-8 -right-8 opacity-10 pointer-events-none">
+        <div className="w-28 h-28 rounded-full" style={{ background: "radial-gradient(closest-side, #C65D3A 30%, transparent 70%)" }} />
+      </div>
+      <div className="text-sm mb-2 flex items-center gap-2">{icon}{label}</div>
+      <div className="text-xl font-semibold">{value}</div>
+      {sub && <div className="text-xs mt-1" style={{ color: "#4B3B30" }}>{sub}</div>}
+    </div>
+  );
+}
+
+function IconWrap({ children }) {
   return (
     <div
-      className="flex items-center gap-2 px-3 py-2 rounded-2xl border text-sm bg-white/90 shadow-sm"
-      style={{ borderColor: "#EAD6C4", color: "#2B2118" }}
+      className="w-10 h-10 rounded-xl grid place-items-center border shadow-sm"
+      style={{ borderColor: "#EAD6C4", backgroundColor: "#FFF8F2", color: "#2B2118" }}
     >
-      {icon}{children}
+      {children}
     </div>
   );
 }
 
-function Stat({ icon, label, value, sub }) {
+function FireIcon(props) {
   return (
-    <div className="p-5 rounded-2xl border bg-white shadow-sm" style={{ borderColor: "#EAD6C4" }}>
-      <div className="text-sm flex items-center gap-2 mb-2" style={{ color: "#4B3B30" }}>
-        {icon}{label}
-      </div>
-      <div className="text-xl font-semibold" style={{ color: "#2B2118" }}>{value}</div>
-      {sub && <div className="text-xs mt-1" style={{ color: "#7A6A5F" }}>{sub}</div>}
-    </div>
+    <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M12 2s4 4 0 8c3 0 6 2 6 6a6 6 0 0 1-12 0c0-2.5 1.5-4.5 3.5-5.5C9 8 10 5 12 2z" />
+    </svg>
   );
 }
 
-function SectionTitle({ icon, children }) {
-  return (
-    <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-2"
-        style={{ fontFamily: "Prata, serif", color: "#2B2118" }}>
-      {icon}{children}
-    </h2>
-  );
-}
+/* ================= ПРИЛОЖЕНИЕ ================= */
+export default function App() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [showUp, setShowUp] = useState(false);
 
-function ScrollTopBtn() {
-  const [show, setShow] = useState(false);
   useEffect(() => {
-    const onScroll = () => setShow(window.scrollY > 600);
+    injectFonts();
+    injectSEO();
+    // убираем горизонтальный скролл
+    document.documentElement.style.overflowX = "hidden";
+    document.body.style.overflowX = "hidden";
+
+    const onScroll = () => setShowUp(window.scrollY > 500);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-  if (!show) return null;
-  return (
-    <button
-      aria-label="Наверх"
-      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-      className="fixed bottom-5 right-5 p-3 rounded-2xl shadow-lg border backdrop-blur"
-      style={{ background: "#FFF8F2", borderColor: "#EAD6C4", color: "#2B2118", zIndex: 50 }}
-    >
-      <ArrowUp size={20} />
-    </button>
-  );
-}
 
-/* =========================
-   APP
-========================= */
-export default function App() {
-  useSEO();
-
-  // волнистый фон
-  const bg = useMemo(() => ({
-    background:
-      "radial-gradient(1200px 600px at 80% -10%, rgba(198,93,58,0.10), transparent 60%)," +
-      "radial-gradient(900px 500px at 0% 10%, rgba(244,215,196,0.6), transparent 60%)," +
-      "#FFF8F2"
-  }), []);
+  const onSubmit = useCallback(async (e) => {
+    e.preventDefault();
+    try {
+      setSending(true);
+      const form = e.currentTarget;
+      const data = new FormData(form);
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: data
+      });
+      if (!res.ok) throw new Error("Network error");
+      setSent(true);
+      form.reset();
+    } catch (err) {
+      console.error(err);
+      alert("Не удалось отправить форму. Попробуйте ещё раз или напишите в WhatsApp.");
+    } finally {
+      setSending(false);
+    }
+  }, []);
 
   return (
-    <div className="min-h-screen" style={{ ...bg, color: "#1F1B16", fontFamily: "Montserrat, sans-serif" }}>
-      {/* HEADER */}
-      <header className="sticky top-0 z-40 border-b backdrop-blur"
-              style={{ backgroundColor: "rgba(255,248,242,0.9)", borderColor: "#EAD6C4" }}>
+    <div className="min-h-screen relative"
+      style={{ backgroundColor: "#FFF8F2", color: "#1F1B16", fontFamily: "Montserrat, sans-serif" }}>
+
+      {/* ДЕКОР: градиент + волны */}
+      <div className="pointer-events-none select-none absolute inset-0 -z-10">
+        <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, #FFF3EA 0%, #FFF8F2 45%, #FFF8F2 100%)" }} />
+        <motion.svg
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+          className="absolute top-0 left-1/2 -translate-x-1/2"
+          width="1200" height="240" viewBox="0 0 1200 240" fill="none">
+          <path d="M0,120 C200,180 300,40 500,80 C700,120 800,200 1200,120 L1200,0 L0,0 Z"
+            fill="#F6E6D9" opacity="0.8" />
+          <path d="M0,160 C200,220 300,80 520,120 C740,160 820,220 1200,160 L1200,0 L0,0 Z"
+            fill="#FFEADF" opacity="0.8" />
+        </motion.svg>
+      </div>
+
+      {/* NAVIGATION */}
+      <header className="sticky top-0 z-30 border-b backdrop-blur"
+        style={{ backgroundColor: "rgba(255,248,242,0.9)", borderColor: "#EAD6C4" }}>
         <div className="max-w-6xl mx-auto px-5 py-3 flex items-center gap-4">
+          {/* Лого и название */}
           <a href="#" className="flex items-center gap-3 shrink-0">
-            <div className="w-9 h-9 rounded-2xl grid place-items-center font-semibold"
-                 style={{ backgroundColor: "#2B2118", color: "#F6E6D9" }}>М</div>
+            <div className="w-9 h-9 rounded-2xl grid place-items-center font-semibold shadow"
+              style={{ backgroundColor: "#2B2118", color: "#F6E6D9" }}>М</div>
             <div className="leading-tight">
-              <div className="font-extrabold flex items-center gap-2" style={{ fontFamily: "Prata, serif", fontSize: 18 }}>
-                <Home size={18} /> {MORE.name}
+              <div className="font-extrabold flex items-center gap-2"
+                style={{ fontFamily: "Prata, serif", fontSize: 18 }}>
+                <Home size={18} /> ЖК «Море»
               </div>
               <div className="text-[11px]" style={{ color: "#7A6A5F" }}>
-                <MapPin size={12} className="inline mr-1" /> {MORE.cityline}
+                <MapPin size={12} className="inline mr-1" /> Евпатория · у озера Мойнаки
               </div>
             </div>
           </a>
 
-          <nav className="hidden lg:flex items-center gap-6 text-[13px] mx-auto">
+          {/* Меню для ПК */}
+          <nav className="hidden lg:flex items-center gap-6 text-[13px] mx-auto" aria-label="Главное меню">
             {[
               ["О проекте", "#about"],
               ["Локация", "#location"],
@@ -181,96 +192,130 @@ export default function App() {
               ["Контакты", "#buy"]
             ].map(([t, href]) => (
               <a key={href} href={href} className="hover:text-orange-600 transition-colors"
-                 style={{ color: "#4B3B30" }}>{t}</a>
+                style={{ color: "#4B3B30" }}>{t}</a>
             ))}
           </nav>
 
+          {/* Кнопки для ПК */}
           <div className="ml-auto hidden sm:flex items-center gap-3">
             <a href="https://wa.me/79124530205"
-               className="px-4 py-2 rounded-2xl border hover:shadow-md"
-               style={{ borderColor: "#D4A373", color: "#2B2118" }}>
-              Написать в WhatsApp
-            </a>
+              target="_blank" rel="noopener noreferrer"
+              className="px-4 py-2 rounded-2xl border hover:shadow-md"
+              style={{ borderColor: "#D4A373", color: "#2B2118" }}>Написать в WhatsApp</a>
             <a href="#cta" className="px-4 py-2 rounded-2xl hover:shadow-md"
-               style={{ backgroundColor: "#C65D3A", color: "#FFF8F2" }}>
-              Подбор квартиры
-            </a>
+              style={{ backgroundColor: "#C65D3A", color: "#FFF8F2" }}>Подбор квартиры</a>
           </div>
+
+          {/* Бургер для мобилки */}
+          <button onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden ml-auto" aria-label="Меню">
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
+
+        {/* Мобильное меню */}
+        {menuOpen && (
+          <div className="lg:hidden bg-white shadow-md">
+            {[
+              ["О проекте", "#about"],
+              ["Локация", "#location"],
+              ["Планировки", "#plans"],
+              ["Галерея", "#gallery"],
+              ["Контакты", "#buy"]
+            ].map(([t, href]) => (
+              <a key={href} href={href} onClick={() => setMenuOpen(false)}
+                className="block px-4 py-2 text-gray-700 hover:bg-orange-50">{t}</a>
+            ))}
+          </div>
+        )}
       </header>
 
       {/* HERO */}
       <section className="relative overflow-hidden">
-        {/* декоративная крупная волна */}
-        <svg aria-hidden="true" className="absolute -top-10 left-0 w-full opacity-60" height="120" viewBox="0 0 1440 120">
-          <path d="M0,80 C200,120 400,0 720,60 C1040,120 1240,40 1440,80 L1440,0 L0,0 Z" fill="#F6E6D9"></path>
-        </svg>
-
-        <div className="relative max-w-6xl mx-auto px-4 py-14 md:py-24 grid md:grid-cols-2 gap-10">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <div className="mb-3 flex items-center gap-2 text-sm" style={{ color: "#C65D3A" }}>
-              <Sparkles size={16} /> Квартал у моря
-            </div>
-
-            {/* заголовок держим в 3 строки максимум */}
-            <h1 className="text-[36px] md:text-[54px] leading-[1.1] font-extrabold"
-                style={{ fontFamily: "Prata, serif", color: "#2B2118", hyphens: "auto" }}>
-              {MORE.name} — {MORE.subtitle}
+        <div className="relative max-w-6xl mx-auto px-4 pt-10 pb-16 md:pb-24 grid md:grid-cols-2 gap-10 items-center">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}>
+            <h1
+              className="font-extrabold tracking-tight"
+              style={{
+                fontFamily: "Prata, serif",
+                color: "#2B2118",
+                fontSize: "clamp(28px, 5vw, 56px)",
+                lineHeight: 1.1,
+                maxWidth: "18ch" // не даём разбухать в 4 строки
+              }}
+            >
+              Квартал у моря и озера — «ЖК Море», Евпатория
             </h1>
-
             <p className="mt-5 text-base md:text-lg" style={{ color: "#4B3B30", maxWidth: 640 }}>
-              {MORE.locationText} {MORE.plansInfo}
+              Масштабный комфорт-класс рядом с озером Мойнаки: 12 домов, благоустроенные дворы, детские и
+              спортивные площадки, торговая галерея, школа и детсад. До моря ~1,2 км. Первый этап — ориентир 2026 г.
             </p>
 
-            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <Pill icon={<Waves size={16} />}>{MORE.distanceToSea} до пляжа</Pill>
-              <Pill icon={<Building2 size={16} />}>{MORE.floors} этажей</Pill>
-              <Pill icon={<Bath size={16} />}>Предчистовая / с ремонтом</Pill>
-              <Pill icon={<ParkingSquare size={16} />}>Паркинг: {MORE.parking}</Pill>
-            </div>
+            <ul className="mt-6 grid grid-cols-2 gap-3 text-sm">
+              {[
+                ["~1,2 км до моря", <Waves size={18} key="w" />],
+                ["12 домов / до 14 этажей", <Building2 size={18} key="b" />],
+                ["Предчистовая / с ремонтом", <Bath size={18} key="ba" />],
+                ["Паркинг: гостевой + уровневый", <ParkingSquare size={18} key="p" />],
+              ].map(([t, icon], i) => (
+                <li key={i}
+                  className="p-3 rounded-xl shadow flex items-center gap-2 border bg-white"
+                  style={{ borderColor: "#EAD6C4", color: "#2B2118" }}>
+                  {icon} {t}
+                </li>
+              ))}
+            </ul>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <a href="#cta" className="px-5 py-3 rounded-2xl hover:shadow-md"
-                 style={{ backgroundColor: "#C65D3A", color: "#FFF8F2" }}>
-                Получить подборку
-              </a>
-              <a href="https://wa.me/79124530205"
-                 className="px-5 py-3 rounded-2xl border hover:shadow-md"
-                 style={{ borderColor: "#D4A373", color: "#2B2118" }}>
-                Связаться в WhatsApp
-              </a>
+                style={{ backgroundColor: "#C65D3A", color: "#FFF8F2" }}>Получить подборку</a>
+              <a href="https://wa.me/79124530205" target="_blank" rel="noopener noreferrer"
+                className="px-5 py-3 rounded-2xl border hover:shadow-md"
+                style={{ borderColor: "#D4A373", color: "#2B2118" }}>Связаться в WhatsApp</a>
             </div>
           </motion.div>
 
+          {/* КАРТИНКА */}
           <motion.div
-            className="rounded-3xl overflow-hidden shadow-lg border"
-            style={{ height: 520, borderColor: "#EAD6C4", background: "#FFF" }}
-            initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6 }}
+            className="rounded-3xl overflow-hidden shadow-lg border relative"
+            style={{ height: 520, borderColor: "#EAD6C4" }}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
           >
-            {MORE.heroImage ? (
-              <img
-                src={MORE.heroImage}
-                alt="Визуализация ЖК Море"
-                className="w-full h-full object-cover"
-                loading="eager"
-                fetchpriority="high"
-              />
-            ) : (
-              <div className="w-full h-full grid place-items-center text-sm" style={{ color: "#7A6A5F" }}>
-                <ImageIcon className="mb-2" /> Добавь /public/media/more/hero.jpeg
-              </div>
-            )}
+            {/* тонкая волна поверх фото, чтобы не наезжала на заголовок */}
+            <div className="absolute -top-1 left-0 right-0 h-10 pointer-events-none"
+              style={{ background: "linear-gradient(180deg, rgba(246,230,217,0.7), transparent)" }} />
+            <img
+              src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1600&auto=format&fit=crop"
+              alt="Визуализация ЖК у моря"
+              className="w-full h-full object-cover"
+              loading="eager"
+              fetchpriority="high"
+              width={1600}
+              height={1040}
+            />
           </motion.div>
         </div>
       </section>
 
       {/* KPI */}
       <section className="py-10">
-        <div className="max-w-6xl mx-auto px-4 grid sm:grid-cols-2 md:grid-cols-4 gap-5">
-          <Stat icon={<Waves size={18} />} label="До пляжа" value={MORE.distanceToSea} />
-          <Stat icon={<Building2 size={18} />} label="Этажность, домов" value={MORE.floors} sub="Монолит-кирпич" />
-          <Stat icon={<Ruler size={18} />} label="Высота потолков" value={MORE.ceiling} />
-          <Stat icon={<ParkingSquare size={18} />} label="Паркомест" value={MORE.parking} sub="Гостевые и многоуровневые" />
+        <div className="max-w-6xl mx-auto px-4 grid sm:grid-cols-2 md:grid-cols-4 gap-5 items-stretch">
+          <div className="h-full">
+            <Stat value="~1,2 км" label="До моря" icon={<Waves size={18} />} />
+          </div>
+          <div className="h-full">
+            <Stat value="до 14" label="Этажей" sub="12 жилых домов" icon={<Building2 size={18} />} />
+          </div>
+          <div className="h-full">
+            <Stat value="Студии–3к" label="Форматы" icon={<Ruler size={18} />} />
+          </div>
+          <div className="h-full">
+            <Stat value="Паркинги" label="Гостевой + уровневый" sub="На территории" icon={<ParkingSquare size={18} />} />
+          </div>
         </div>
       </section>
 
@@ -278,56 +323,66 @@ export default function App() {
       <section id="about" className="py-14 md:py-20">
         <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-10">
           <div className="md:col-span-2">
-            <SectionTitle icon={<Building2 size={22} />}>О проекте</SectionTitle>
-            <p className="mt-4" style={{ color: "#4B3B30" }}>
-              {MORE.name} — современная квартальная застройка у моря: безопасные дворы без машин, детские и спортивные
-              площадки, озеленение и коммерция шаговой доступности. Продуманные планировки и виды на Чёрное море.
+            <h2 className="text-2xl md:text-3xl font-bold" style={{ fontFamily: 'Prata, serif' }}>О проекте</h2>
+            <p className="mt-4" style={{ color: '#4B3B30' }}>
+              «ЖК Море» — современный квартал в Евпатории у озера Мойнаки. Дворы без машин, детские и спортивные площадки,
+              озеленение, торговая галерея, планируемые школа и детский сад. Форматы квартир от студий до семейных 3-комн.
             </p>
-
             <div className="mt-6 grid sm:grid-cols-2 gap-4">
-              <ItemCard icon={<FileText size={18} />} h="Сроки" t="Очередности с поэтапным вводом; точные даты уточняются у отдела продаж." />
-              <ItemCard icon={<CircuitBoard size={18} />} h="Технологии" t={MORE.tech.join("; ") + "."} />
-              <ItemCard icon={<ShieldCheck size={18} />} h="Юридически" t={MORE.legal} />
-              <ItemCard icon={<Hammer size={18} />} h="Масштаб" t="Сады и школы поблизости, торговые галереи в составе квартала." />
+              {[
+                { h: 'Сроки', t: 'Постепенный ввод по очередям; ориентир первого этапа — 2026 год.', icon: <FileText size={18} /> },
+                { h: 'Технологии', t: 'Современные инженерные решения, панорамные окна, энергоэффективность.', icon: <CircuitBoard size={18} /> },
+                { h: 'Юридически', t: '214-ФЗ, эскроу-счета. Покупка по ДДУ.', icon: <ShieldCheck size={18} /> },
+                { h: 'Масштаб', t: 'На территории: торговая галерея, спорт- и детские зоны, паркинги.', icon: <Hammer size={18} /> },
+              ].map((c, i) => (
+                <div key={i} className="p-5 rounded-2xl border flex items-start gap-3"
+                  style={{ borderColor: '#EAD6C4', backgroundColor: '#FFFFFF' }}>
+                  <IconWrap>{c.icon}</IconWrap>
+                  <div>
+                    <div className="font-semibold" style={{ color: '#2B2118' }}>{c.h}</div>
+                    <div className="text-sm mt-1" style={{ color: '#4B3B30' }}>{c.t}</div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-
-          <aside className="p-6 rounded-2xl border" style={{ backgroundColor: "#F6E6D9", borderColor: "#EAD6C4" }}>
-            <div className="font-semibold flex items-center gap-2" style={{ color: "#2B2118" }}>
+          <aside className="p-6 rounded-2xl border"
+            style={{ backgroundColor: '#F6E6D9', borderColor: '#EAD6C4' }}>
+            <div className="font-semibold flex items-center gap-2" style={{ color: '#2B2118' }}>
               <Building2 size={18} /> Ключевые факты
             </div>
-            <ul className="mt-3 space-y-2 text-sm" style={{ color: "#4B3B30" }}>
-              <li><Waves size={14} className="inline mr-2" /> {MORE.distanceToSea} до пляжа</li>
-              <li><MapPin size={14} className="inline mr-2" /> Удобная локация у моря</li>
-              <li><ParkingSquare size={14} className="inline mr-2" /> Паркинг: гостевой + многоуровневый</li>
+            <ul className="mt-3 space-y-2 text-sm" style={{ color: '#4B3B30' }}>
+              <li><Waves size={14} className="inline mr-2" /> Близость к морю и озеру</li>
+              <li><MapPin size={14} className="inline mr-2" /> Евпатория, у Мойнакского озера</li>
+              <li><ParkingSquare size={14} className="inline mr-2" /> Паркинги на территории</li>
               <li><Bath size={14} className="inline mr-2" /> Отделка: предчистовая / с ремонтом</li>
             </ul>
             <a href="#cta" className="mt-5 inline-block w-full text-center px-4 py-2 rounded-xl hover:shadow-md"
-               style={{ backgroundColor: "#C65D3A", color: "#FFF8F2" }}>
-              Запросить подборку
-            </a>
+              style={{ backgroundColor: '#C65D3A', color: '#FFF8F2' }}>Запросить подборку</a>
           </aside>
         </div>
       </section>
 
-      {/* GALLERY */}
-      <section id="gallery" className="py-14 md:py-20" style={{ backgroundColor: "#FFF3EA" }}>
+      {/* GALLERY (расширенная) */}
+      <section id="gallery" className="py-14 md:py-20" style={{ backgroundColor: '#FFF3EA' }}>
         <div className="max-w-6xl mx-auto px-4">
-          <SectionTitle icon={<ImageIcon size={22} />}>Галерея</SectionTitle>
-          <div className="mt-6 grid md:grid-cols-3 gap-4">
-            {MORE.gallery.map((src, i) => (
+          <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-2"
+            style={{ fontFamily: 'Prata, serif' }}><Building2 size={22} /> Галерея</h2>
+          <p className="mt-2 text-sm" style={{ color: "#7A6A5F" }}>Пока используются иллюстративные фото моря/архитектуры. Когда будут реальные — подменим пути.</p>
+          <div className="mt-6 grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4">
+            {[
+              "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?q=80&w=1600&auto=format&fit=crop",
+              "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?q=80&w=1600&auto=format&fit=crop",
+              "https://images.unsplash.com/photo-1529429612776-e5dd24d49b42?q=80&w=1600&auto=format&fit=crop",
+              "https://images.unsplash.com/photo-1487956382158-bb926046304a?q=80&w=1600&auto=format&fit=crop",
+              "https://images.unsplash.com/photo-1501183638710-841dd1904471?q=80&w=1600&auto=format&fit=crop",
+              "https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=1600&auto=format&fit=crop"
+            ].map((src, i) => (
               <div key={i} className="aspect-[4/3] rounded-2xl overflow-hidden shadow border group"
-                   style={{ borderColor: "#EAD6C4", background: "#FFF" }}>
-                <img
-                  src={src}
-                  alt={`Визуализация ЖК Море ${i + 1}`}
-                  className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
-                  loading="lazy"
-                  onError={(e) => { e.currentTarget.style.display = "none"; }}
-                />
-                <div className="w-full h-full grid place-items-center text-xs text-[#7A6A5F]">
-                  {/* если картинка не найдена — держим высоту карточки */}
-                </div>
+                style={{ borderColor: '#EAD6C4' }}>
+                <img src={src} alt="Галерея ЖК Море"
+                  className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform"
+                  loading="lazy" width={1600} height={1200} />
               </div>
             ))}
           </div>
@@ -338,30 +393,24 @@ export default function App() {
       <section id="location" className="py-14 md:py-20">
         <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-start">
           <div>
-            <SectionTitle icon={<MapPin size={22} />}>Локация и окружение</SectionTitle>
-            <p className="mt-4" style={{ color: "#4B3B30" }}>{MORE.locationText}</p>
+            <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-2"
+              style={{ fontFamily: 'Prata, serif' }}><MapPin size={22} /> Локация и окружение</h2>
+            <p className="mt-4" style={{ color: '#4B3B30' }}>
+              Евпатория, рядом с озером Мойнаки. До пляжей — пешая доступность; вокруг — прогулочные зоны,
+              санаторно-курортная инфраструктура, общественный транспорт.
+            </p>
             <ul className="mt-6 grid grid-cols-2 gap-3 text-sm">
-              {[
-                { t: "Школы и детские сады", icon: <School size={16} /> },
-                { t: "Медицинские центры поблизости", icon: <HeartHandshake size={16} /> },
-                { t: "Магазины и услуги", icon: <Store size={16} /> },
-                { t: "Транспортная доступность", icon: <Bike size={16} /> }
-              ].map((i, idx) => (
+              {[{ t: "Школа и детсад (план)", icon: <School size={16} /> }, { t: "Медицинская инфраструктура", icon: <HeartHandshake size={16} /> }, { t: "Магазины и услуги", icon: <Store size={16} /> }, { t: "Маршруты и велодорожки", icon: <Bike size={16} /> }].map((i, idx) => (
                 <li key={idx} className="p-3 rounded-xl border flex items-center gap-2"
-                    style={{ borderColor: "#EAD6C4", backgroundColor: "#FFFFFF", color: "#2B2118" }}>
+                  style={{ borderColor: '#EAD6C4', backgroundColor: '#FFFFFF', color: '#2B2118' }}>
                   {i.icon} {i.t}
                 </li>
               ))}
             </ul>
           </div>
-          <div className="rounded-2xl overflow-hidden shadow border" style={{ borderColor: "#EAD6C4" }}>
-            {/* Встрой любую публичную карту/видео, пока — заглушка */}
-            <iframe
-              title="map"
-              src="https://yandex.ru/map-widget/v1/?um=constructor%3A&source=constructor"
-              className="w-full h-[360px]"
-              loading="lazy"
-            />
+          <div className="rounded-2xl overflow-hidden shadow border" style={{ borderColor: '#EAD6C4' }}>
+            <iframe title="map" src="https://yandex.ru/map-widget/v1/?ll=33.361%2C45.190&z=12"
+              className="w-full h-[360px]" loading="lazy" />
           </div>
         </div>
       </section>
@@ -369,37 +418,55 @@ export default function App() {
       {/* INFRA */}
       <section id="infra" className="py-14 md:py-20">
         <div className="max-w-6xl mx-auto px-4">
-          <SectionTitle icon={<Store size={22} />}>Инфраструктура квартала</SectionTitle>
+          <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-2"
+            style={{ fontFamily: 'Prata, serif' }}><Store size={22} /> Инфраструктура квартала</h2>
           <div className="grid md:grid-cols-3 gap-6 mt-6">
-            <InfraCard title="Для семей" items={MORE.infra.family} />
-            <InfraCard title="Для активных" items={MORE.infra.active} />
-            <InfraCard title="Сервис и комфорт" items={MORE.infra.service} />
+            {[
+              { t: "Для семей", points: [[Baby, "Детсад (план), школа (план)"], [School, "Игровые и образовательные пространства"], [Trees, "Дворы без машин"]] },
+              { t: "Для активных", points: [[Dumbbell, "Спортплощадки и воркаут"], [Bike, "Пешие маршруты и вело"], [Waves, "Близость пляжей"]] },
+              { t: "Сервис и комфорт", points: [[Store, "Торговая галерея"], [HeartHandshake, "Аптеки и сервисы поблизости"], [ParkingSquare, "Гостевой и уровневый паркинг"]] }
+            ].map((b, i) => (
+              <div key={i} className="p-6 rounded-2xl border"
+                style={{ backgroundColor: '#FFFFFF', borderColor: '#EAD6C4' }}>
+                <div className="font-semibold" style={{ color: '#2B2118' }}>{b.t}</div>
+                <ul className="mt-3 space-y-2 text-sm" style={{ color: '#4B3B30' }}>
+                  {b.points.map(([Ic, txt], j) => (
+                    <li key={j} className="flex gap-3 items-start"><Ic size={16} /> {txt}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* TECH */}
-      <section id="tech" className="py-14 md:py-20" style={{ backgroundColor: "#FFF3EA" }}>
+      <section id="tech" className="py-14 md:py-20" style={{ backgroundColor: '#FFF3EA' }}>
         <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-8 items-start">
           <div>
-            <SectionTitle icon={<CircuitBoard size={22} />}>Технологии и инженерия</SectionTitle>
-            <ul className="mt-4 space-y-2" style={{ color: "#4B3B30" }}>
-              <li className="flex gap-3 items-start"><Building2 size={16} /> Конструктив: монолит-кирпич</li>
-              <li className="flex gap-3 items-start"><Home size={16} /> Панорамное остекление, улучшенная тепло-/шумоизоляция</li>
-              <li className="flex gap-3 items-start"><CircuitBoard size={16} /> Современные лифты и инженерия</li>
-              <li className="flex gap-3 items-start"><Bath size={16} /> Варианты отделки: предчистовая / с ремонтом</li>
+            <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-2"
+              style={{ fontFamily: 'Prata, serif' }}><CircuitBoard size={22} /> Технологии и инженерия</h2>
+            <ul className="mt-4 space-y-2" style={{ color: '#4B3B30' }}>
+              {[
+                { t: 'Современный конструктив, энергоэффективные решения', icon: <Building2 size={16} /> },
+                { t: 'Панорамное остекление, улучшенная тепло-/шумоизоляция', icon: <Home size={16} /> },
+                { t: 'Индивидуальные/покорпусные инженерные системы', icon: <FireIcon /> },
+                { t: 'Лифтовое оборудование, системы контроля доступа', icon: <CircuitBoard size={16} /> },
+                { t: 'Отделка: предчистовая / варианты с ремонтом', icon: <Bath size={16} /> },
+              ].map((i, idx) => (
+                <li key={idx} className="flex gap-3 items-start"><span className="mt-0.5">{i.icon}</span> {i.t}</li>
+              ))}
             </ul>
           </div>
-          <div className="p-6 rounded-2xl border shadow" style={{ backgroundColor: "#FFFFFF", borderColor: "#EAD6C4" }}>
-            <div className="font-semibold flex items-center gap-2" style={{ color: "#2B2118" }}>
+          <div className="p-6 rounded-2xl border shadow"
+            style={{ backgroundColor: '#FFFFFF', borderColor: '#EAD6C4' }}>
+            <div className="font-semibold flex items-center gap-2" style={{ color: '#2B2118' }}>
               <ShieldCheck size={18} /> Преимущества для владельца
             </div>
-            <div className="grid sm:grid-cols-2 gap-4 mt-3 text-sm" style={{ color: "#4B3B30" }}>
-              {MORE.benefitsOwner.map((t, i) => (
+            <div className="grid sm:grid-cols-2 gap-4 mt-3 text-sm" style={{ color: '#4B3B30' }}>
+              {["Комфорт и энергоэффективность", "Ликвидность для аренды", "Удобные планировки", "Паркинги и сервис рядом"].map((t, i) => (
                 <div key={i} className="p-4 rounded-xl border"
-                     style={{ backgroundColor: "#FFF8F2", borderColor: "#EAD6C4" }}>
-                  {t}
-                </div>
+                  style={{ backgroundColor: '#FFF8F2', borderColor: '#EAD6C4' }}>{t}</div>
               ))}
             </div>
           </div>
@@ -409,225 +476,225 @@ export default function App() {
       {/* PLANS */}
       <section id="plans" className="py-14 md:py-20">
         <div className="max-w-6xl mx-auto px-4">
-          <SectionTitle icon={<Ruler size={22} />}>Планировки и метражи</SectionTitle>
-          <p className="mt-3" style={{ color: "#4B3B30" }}>{MORE.plansInfo}</p>
+          <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-2"
+            style={{ fontFamily: 'Prata, serif' }}><Ruler size={22} /> Планировки и метражи</h2>
+          <p className="mt-3" style={{ color: '#4B3B30' }}>
+            Студии, 1-комнатные, 2-комнатные и семейные 3-комнатные форматы. Актуальные варианты и PDF-подборка — по запросу.
+          </p>
           <div className="mt-6 grid md:grid-cols-3 gap-4">
-            {MORE.plans.map((c, i) => (
-              <div key={i} className="p-5 rounded-2xl border flex items-start gap-3"
-                   style={{ backgroundColor: "#FFFFFF", borderColor: "#EAD6C4" }}>
-                <div className="w-9 h-9 rounded-xl grid place-items-center border"
-                     style={{ borderColor: "#EAD6C4", backgroundColor: "#FFF8F2", color: "#2B2118" }}>
-                  <Home size={18} />
-                </div>
-                <div>
-                  <div className="font-semibold" style={{ color: "#2B2118" }}>{c.t}</div>
-                  <div className="text-sm mt-1" style={{ color: "#4B3B30" }}>{c.d}</div>
-                  <a href="#cta" className="mt-3 inline-block text-sm hover:underline" style={{ color: "#C65D3A" }}>
-                    Запросить PDF-подборку планировок
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PHASING */}
-      <section id="phasing" className="py-14 md:py-20" style={{ backgroundColor: "#FFF3EA" }}>
-        <div className="max-w-6xl mx-auto px-4">
-          <SectionTitle icon={<Building2 size={22} />}>Очереди строительства</SectionTitle>
-          <div className="mt-6 overflow-x-auto rounded-2xl border"
-               style={{ backgroundColor: "#FFFFFF", borderColor: "#EAD6C4" }}>
-            <table className="min-w-full text-sm">
-              <thead style={{ backgroundColor: "#F6E6D9", color: "#2B2118" }}>
-                <tr>
-                  <th className="text-left px-4 py-3">Очередь</th>
-                  <th className="text-left px-4 py-3">Ориентировочный срок</th>
-                  <th className="text-left px-4 py-3">Комментарий</th>
-                </tr>
-              </thead>
-              <tbody style={{ color: "#4B3B30" }}>
-                {MORE.phasing.map((r, i) => (
-                  <tr key={i} className="border-t" style={{ borderColor: "#EAD6C4" }}>
-                    <td className="px-4 py-3 font-medium" style={{ color: "#2B2118" }}>{r.q}</td>
-                    <td className="px-4 py-3">{r.s}</td>
-                    <td className="px-4 py-3">{r.c}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      {/* PROCESS + CTA */}
-      <section id="process" className="py-14 md:py-20">
-        <div className="max-w-6xl mx-auto px-4">
-          <SectionTitle icon={<FileSignature size={22} />}>Как проходит покупка</SectionTitle>
-          <div className="mt-6 grid md:grid-cols-4 gap-4">
             {[
-              { t: "Заявка", d: "Присылаем подборку планировок и цен", icon: <Handshake size={18} /> },
-              { t: "Выбор", d: "Презентация, консультация, бронирование", icon: <KeyRound size={18} /> },
-              { t: "Ипотека/оплата", d: "Договор долевого участия на эскроу-счёт", icon: <Banknote size={18} /> },
-              { t: "Сделка", d: "Подписание, регистрация, ключи", icon: <FileSignature size={18} /> }
-            ].map((s, i) => (
+              { t: "Студии", d: "Компактные метражи, эргономичные планировки", icon: <Home size={18} /> },
+              { t: "1-комнатные", d: "Кухни-гостиные, лоджии, видовые этажи", icon: <Home size={18} /> },
+              { t: "2–3-комнатные", d: "Семейные форматы, просторные гостиные", icon: <Home size={18} /> },
+            ].map((c, i) => (
               <div key={i} className="p-5 rounded-2xl border flex items-start gap-3"
-                   style={{ backgroundColor: "#FFFFFF", borderColor: "#EAD6C4" }}>
-                <div className="w-9 h-9 rounded-xl grid place-items-center border"
-                     style={{ borderColor: "#EAD6C4", backgroundColor: "#FFF8F2", color: "#2B2118" }}>
-                  {s.icon}
-                </div>
+                style={{ backgroundColor: '#FFFFFF', borderColor: '#EAD6C4' }}>
+                <IconWrap>{c.icon}</IconWrap>
                 <div>
-                  <div className="text-lg font-semibold" style={{ color: "#2B2118" }}>{i + 1}. {s.t}</div>
-                  <div className="text-sm mt-1" style={{ color: "#4B3B30" }}>{s.d}</div>
+                  <div className="font-semibold" style={{ color: '#2B2118' }}>{c.t}</div>
+                  <div className="text-sm mt-1" style={{ color: '#4B3B30' }}>{c.d}</div>
+                  <a href="#cta" className="mt-3 inline-block text-sm hover:underline"
+                    style={{ color: '#C65D3A' }}>Запросить PDF-подборку планировок</a>
                 </div>
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          {/* CTA */}
-          <div id="buy" className="grid md:grid-cols-2 gap-6 mt-10">
-            <div className="p-6 rounded-2xl border" style={{ backgroundColor: "#FFF8F2", borderColor: "#EAD6C4" }}>
-              <div className="font-semibold flex items-center gap-2" style={{ color: "#2B2118" }}>
-                <Banknote size={18} /> Ипотека и банки-партнёры
+      {/* PROCESS */}
+      <section id="process" className="py-14 md:py-20" style={{ backgroundColor: '#FFF3EA' }}>
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-2"
+            style={{ fontFamily: 'Prata, serif' }}><FileSignature size={22} /> Как проходит покупка</h2>
+        </div>
+        <div className="max-w-6xl mx-auto px-4 mt-6 grid md:grid-cols-4 gap-4">
+          {[
+            { t: "Заявка", d: "Присылаем подборку планировок и цен", icon: <Handshake size={18} /> },
+            { t: "Выбор", d: "Онлайн/офлайн презентация, консультация, бронирование", icon: <KeyRound size={18} /> },
+            { t: "Ипотека/оплата", d: "ДДУ на эскроу-счёт, помощь с банками", icon: <Banknote size={18} /> },
+            { t: "Сделка", d: "Подписание, регистрация, ключи", icon: <FileSignature size={18} /> },
+          ].map((s, i) => (
+            <div key={i} className="p-5 rounded-2xl border flex items-start gap-3"
+              style={{ backgroundColor: '#FFFFFF', borderColor: '#EAD6C4' }}>
+              <IconWrap>{s.icon}</IconWrap>
+              <div>
+                <div className="text-lg font-semibold" style={{ color: '#2B2118' }}>{i + 1}. {s.t}</div>
+                <div className="text-sm mt-1" style={{ color: '#4B3B30' }}>{s.d}</div>
               </div>
-              <p className="text-sm mt-3" style={{ color: "#4B3B30" }}>
-                Работаем с крупными банками России. Подбор условий — индивидуально под вашу задачу.
-              </p>
-              <div className="grid grid-cols-3 gap-3 mt-3 text-sm" style={{ color: "#4B3B30" }}>
-                {["Сбер", "ВТБ", "Дом.РФ", "Альфа", "Газпромбанк", "РНКБ"].map((b, i) => (
-                  <div key={i} className="h-14 rounded-xl border grid place-items-center"
-                       style={{ backgroundColor: "#FFFFFF", borderColor: "#EAD6C4" }}>
-                    {b}
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs mt-3" style={{ color: "#7A6A5F" }}>
-                Список банков расширяется. Не является публичной офертой.
-              </p>
             </div>
+          ))}
+        </div>
 
-            <CtaForm />
+        {/* Видео-тур */}
+        <div className="max-w-6xl mx-auto px-4 mt-10 grid md:grid-cols-2 gap-6">
+          <div className="p-6 rounded-2xl border"
+            style={{ backgroundColor: '#FFF8F2', borderColor: '#EAD6C4' }}>
+            <div className="font-semibold flex items-center gap-2" style={{ color: '#2B2118' }}>
+              <Banknote size={18} /> Ипотека и акции
+            </div>
+            <p className="text-sm mt-3" style={{ color: '#4B3B30' }}>
+              Индивидуальные условия от банков-партнёров. Подскажем действующие акции и спецпредложения — уточняйте при запросе.
+            </p>
+          </div>
+          <div className="p-6 rounded-2xl border shadow"
+            style={{ backgroundColor: '#FFFFFF', borderColor: '#EAD6C4' }}>
+            <div className="font-semibold flex items-center gap-2" style={{ color: '#2B2118' }}>
+              <Home size={18} /> Видео о локации
+            </div>
+            <div className="mt-3 aspect-video rounded-xl overflow-hidden border"
+              style={{ borderColor: '#EAD6C4' }}>
+              <iframe title="video" src="https://www.youtube.com/embed/hLcCQA-CH8U"
+                className="w-full h-full" loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="py-14 md:py-20">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold" style={{ fontFamily: 'Prata, serif' }}>Вопросы и ответы</h2>
+          <div className="mt-6 grid md:grid-cols-2 gap-4">
+            {[
+              { q: "Где расположен квартал?", a: "В Евпатории у озера Мойнаки. До пляжей — пешая доступность." },
+              { q: "Какая конструкция домов?", a: "Современный комфорт-класс, энергоэффективные решения, панорамное остекление." },
+              { q: "Какие варианты отделки?", a: "Предчистовая и варианты с ремонтом — уточняйте по корпусам и этапам." },
+              { q: "Какой формат парковки?", a: "Гостевой и уровневые паркинги на территории." },
+              { q: "Сроки ввода очередей?", a: "Проект поэтапный, ориентир первого этапа — 2026 год." },
+              { q: "Как проходит покупка?", a: "Бронирование, ДДУ на эскроу-счёт, помощь с ипотекой от банков." }
+            ].map((i, idx) => (
+              <details key={idx} className="p-5 rounded-2xl border bg-white" style={{ borderColor: '#EAD6C4' }}>
+                <summary className="font-semibold cursor-pointer" style={{ color: '#2B2118' }}>{i.q}</summary>
+                <p className="mt-2 text-sm" style={{ color: '#4B3B30' }}>{i.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+        {/* FAQPage Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              "mainEntity": [
+                { "@type": "Question", "name": "Где расположен квартал?", "acceptedAnswer": { "@type": "Answer", "text": "В Евпатории у озера Мойнаки. До пляжей — пешая доступность." } },
+                { "@type": "Question", "name": "Какая конструкция домов?", "acceptedAnswer": { "@type": "Answer", "text": "Современный комфорт-класс, энергоэффективные решения, панорамное остекление." } },
+                { "@type": "Question", "name": "Какие варианты отделки?", "acceptedAnswer": { "@type": "Answer", "text": "Предчистовая и варианты с ремонтом — уточняйте по корпусам и этапам." } },
+                { "@type": "Question", "name": "Какой формат парковки?", "acceptedAnswer": { "@type": "Answer", "text": "Гостевой и уровневые паркинги на территории." } },
+                { "@type": "Question", "name": "Сроки ввода очередей?", "acceptedAnswer": { "@type": "Answer", "text": "Проект поэтапный, ориентир первого этапа — 2026 год." } },
+                { "@type": "Question", "name": "Как проходит покупка?", "acceptedAnswer": { "@type": "Answer", "text": "Бронирование, ДДУ на эскроу-счёт, помощь с ипотекой." } }
+              ]
+            })
+          }}
+        />
+      </section>
+
+      {/* BUY CTA + FORM */}
+      <section id="buy" className="py-20">
+        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-10 items-start">
+          <div className="space-y-4">
+            <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-2"
+              style={{ fontFamily: 'Prata, serif' }}><Handshake size={22} /> Оставьте заявку на подбор</h2>
+            <p style={{ color: '#4B3B30' }}>
+              Подберём планировки и условия под вашу задачу — проживание, аренда, инвестиция. Расскажем о корпусах, этажах, типах отделки и сроках.
+            </p>
+            <a href="https://wa.me/79124530205" target="_blank" rel="noopener noreferrer"
+              className="inline-block px-5 py-3 rounded-2xl border hover:shadow-md"
+              style={{ borderColor: '#D4A373', color: '#2B2118' }}>Связаться в WhatsApp</a>
+          </div>
+          <div id="cta" className="p-6 rounded-2xl border shadow"
+            style={{ backgroundColor: '#FFFFFF', borderColor: '#EAD6C4' }}>
+            {sent ? (
+              <div className="text-center">
+                <div className="text-xl font-semibold" style={{ color: '#2B2118' }}>Спасибо! Заявка отправлена.</div>
+                <p className="mt-2" style={{ color: '#4B3B30' }}>Мы свяжемся с вами в ближайшее время.</p>
+              </div>
+            ) : (
+              <>
+                <div className="text-xl font-semibold" style={{ color: '#2B2118' }}>Получить подборку квартир</div>
+                <p className="text-sm mt-1" style={{ color: '#4B3B30' }}>
+                  Оставьте контакты — пришлём актуальные планировки, цены и акции по ЖК «Море».
+                </p>
+                <form onSubmit={onSubmit} className="mt-4 space-y-3">
+                  <input type="hidden" name="access_key" value="af90736e-9a82-429d-9943-30b5852e908a" />
+                  <input className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: '#EAD6C4' }}
+                    name="name" placeholder="Ваше имя" required />
+                  <input className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: '#EAD6C4' }}
+                    name="phone" placeholder="Телефон" required />
+                  <input className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: '#EAD6C4' }}
+                    name="email" placeholder="Email (по желанию)" />
+                  <textarea className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: '#EAD6C4' }}
+                    name="message" placeholder="Комментарий" rows={3} />
+                  <button type="submit" disabled={sending}
+                    className="w-full px-4 py-3 rounded-xl hover:shadow-md disabled:opacity-70"
+                    style={{ backgroundColor: '#C65D3A', color: '#FFF8F2' }}>
+                    {sending ? "Отправляем..." : "Отправить"}
+                  </button>
+                </form>
+                <a href="/policy.html" className="block text-xs mt-3 underline" style={{ color: '#7A6A5F' }}>
+                  Политика конфиденциальности
+                </a>
+                <a href="/consent.html" className="block text-xs underline" style={{ color: '#7A6A5F' }}>
+                  Согласие на обработку ПДн
+                </a>
+              </>
+            )}
           </div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="py-12 border-t" style={{ borderColor: "#EAD6C4" }}>
-        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-6 text-sm" style={{ color: "#4B3B30" }}>
+      <footer className="py-12 border-t" style={{ borderColor: '#EAD6C4' }}>
+        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-6 text-sm" style={{ color: '#4B3B30' }}>
           <div className="md:col-span-2">
-            <div className="font-semibold flex items-center gap-2" style={{ color: "#2B2118" }}>
-              <Home size={16} /> {MORE.name}
+            <div className="font-semibold flex items-center gap-2" style={{ color: '#2B2118' }}>
+              <Home size={16} /> ЖК «Море»
             </div>
-            <p className="mt-2">{MORE.locationText}</p>
-            <p className="mt-1">Информация на сайте носит ознакомительный характер и не является публичной офертой.</p>
+            <p className="mt-2">Крым, г.о. Евпатория, район озера Мойнаки</p>
+            <p className="mt-1">Договор долевого участия (214-ФЗ), расчёты через эскроу-счета.</p>
           </div>
           <div className="md:text-right">
-            <a href="/privacy.html" className="underline">Политика конфиденциальности</a>
+            <a href="/policy.html" className="underline">Политика конфиденциальности</a>
             <span className="mx-2">•</span>
             <a href="/consent.html" className="underline">Согласие на обработку ПДн</a>
           </div>
         </div>
       </footer>
 
-      <ScrollTopBtn />
-    </div>
-  );
-}
+      {/* JSON-LD Organization */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "ЖК «Море»",
+            "url": typeof location !== "undefined" ? location.href : "https://example.com/",
+            "sameAs": ["https://wa.me/79124530205"],
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Евпатория",
+              "addressRegion": "Республика Крым",
+              "addressCountry": "RU"
+            }
+          })
+        }}
+      />
 
-/* =========================
-   ВСПОМОГАТЕЛЬНЫЕ
-========================= */
-function ItemCard({ icon, h, t }) {
-  return (
-    <div className="p-5 rounded-2xl border flex items-start gap-3"
-         style={{ borderColor: "#EAD6C4", backgroundColor: "#FFFFFF" }}>
-      <div className="w-9 h-9 rounded-xl grid place-items-center border"
-           style={{ borderColor: "#EAD6C4", backgroundColor: "#FFF8F2", color: "#2B2118" }}>
-        {icon}
-      </div>
-      <div>
-        <div className="font-semibold" style={{ color: "#2B2118" }}>{h}</div>
-        <div className="text-sm mt-1" style={{ color: "#4B3B30" }}>{t}</div>
-      </div>
-    </div>
-  );
-}
-
-function InfraCard({ title, items }) {
-  return (
-    <div className="p-6 rounded-2xl border" style={{ backgroundColor: "#FFFFFF", borderColor: "#EAD6C4" }}>
-      <div className="font-semibold" style={{ color: "#2B2118" }}>{title}</div>
-      <ul className="mt-3 space-y-2 text-sm" style={{ color: "#4B3B30" }}>
-        {items.map((txt, j) => (
-          <li key={j} className="flex gap-3 items-start"><span className="mt-0.5">•</span> {txt}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function CtaForm() {
-  const [sent, setSent] = useState(false);
-  const [sending, setSending] = useState(false);
-
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setSending(true);
-      const form = e.currentTarget;
-      const data = new FormData(form);
-      const res = await fetch("https://api.web3forms.com/submit", { method: "POST", body: data });
-      if (!res.ok) throw new Error("Network error");
-      setSent(true);
-      form.reset();
-    } catch (err) {
-      console.error(err);
-      alert("Не удалось отправить форму. Попробуйте ещё раз или напишите в WhatsApp.");
-    } finally {
-      setSending(false);
-    }
-  };
-
-  return (
-    <div id="cta" className="p-6 rounded-2xl border shadow" style={{ backgroundColor: "#FFFFFF", borderColor: "#EAD6C4" }}>
-      {sent ? (
-        <div className="text-center">
-          <div className="text-xl font-semibold" style={{ color: "#2B2118" }}>Спасибо! Заявка отправлена.</div>
-          <p className="mt-2" style={{ color: "#4B3B30" }}>Мы свяжемся с вами в ближайшее время.</p>
-        </div>
-      ) : (
-        <>
-          <div className="text-xl font-semibold" style={{ color: "#2B2118" }}>Получить подборку квартир</div>
-          <p className="text-sm mt-1" style={{ color: "#4B3B30" }}>
-            Оставьте контакты — пришлём актуальные планировки, цены и акции по {MORE.name}.
-          </p>
-          <form onSubmit={onSubmit} className="mt-4 space-y-3">
-            {/* ключ Web3Forms замени на свой */}
-            <input type="hidden" name="access_key" value="af90736e-9a82-429d-9943-30b5852e908a" />
-            <input className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: "#EAD6C4" }}
-                   name="name" placeholder="Ваше имя" required />
-            <input className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: "#EAD6C4" }}
-                   name="phone" placeholder="Телефон" required />
-            <input className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: "#EAD6C4" }}
-                   name="email" placeholder="Email (по желанию)" />
-            <textarea className="w-full px-4 py-3 rounded-xl border" style={{ borderColor: "#EAD6C4" }}
-                      name="message" placeholder="Комментарий" rows={3} />
-            <button type="submit" disabled={sending}
-                    className="w-full px-4 py-3 rounded-xl hover:shadow-md disabled:opacity-70"
-                    style={{ backgroundColor: "#C65D3A", color: "#FFF8F2" }}>
-              {sending ? "Отправляем..." : "Отправить"}
-            </button>
-          </form>
-          <a href="https://wa.me/79124530205"
-             className="mt-3 block text-center px-4 py-3 rounded-xl border hover:shadow-md"
-             style={{ borderColor: "#D4A373", color: "#2B2118" }}>
-            Или написать в WhatsApp
-          </a>
-          <p className="mt-3 text-xs" style={{ color: "#7A6A5F" }}>
-            Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности.
-          </p>
-        </>
+      {/* Scroll to top */}
+      {showUp && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-5 right-5 rounded-full shadow-lg"
+          style={{ backgroundColor: "#C65D3A", color: "#FFF8F2", padding: 12 }}
+          aria-label="Наверх"
+        >
+          <ArrowUp size={20} />
+        </button>
       )}
     </div>
   );

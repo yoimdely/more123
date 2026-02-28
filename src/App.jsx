@@ -198,10 +198,7 @@ export default function App() {
 
           {/* Кнопки для ПК */}
           <div className="ml-auto hidden sm:flex items-center gap-3">
-            <a href="https://wa.me/79124530205"
-              target="_blank" rel="noopener noreferrer"
-              className="px-4 py-2 rounded-2xl border hover:shadow-md"
-              style={{ borderColor: "#D4A373", color: "#2B2118" }}>Написать в WhatsApp</a>
+            <button type="button" disabled className="px-4 py-2 rounded-2xl border opacity-70 cursor-not-allowed" style={{ borderColor: "#D4A373", color: "#2B2118" }}>Написать в WhatsApp</button>
             <a href="#cta" className="px-4 py-2 rounded-2xl hover:shadow-md"
               style={{ backgroundColor: "#C65D3A", color: "#FFF8F2" }}>Подбор квартиры</a>
           </div>
@@ -271,9 +268,7 @@ export default function App() {
             <div className="mt-8 flex flex-wrap gap-3">
               <a href="#cta" className="px-5 py-3 rounded-2xl hover:shadow-md"
                 style={{ backgroundColor: "#C65D3A", color: "#FFF8F2" }}>Получить подборку</a>
-              <a href="https://wa.me/79124530205" target="_blank" rel="noopener noreferrer"
-                className="px-5 py-3 rounded-2xl border hover:shadow-md"
-                style={{ borderColor: "#D4A373", color: "#2B2118" }}>Связаться в WhatsApp</a>
+              <button type="button" disabled className="px-5 py-3 rounded-2xl border opacity-70 cursor-not-allowed" style={{ borderColor: "#D4A373", color: "#2B2118" }}>Связаться в WhatsApp</button>
             </div>
           </motion.div>
 
@@ -602,9 +597,7 @@ export default function App() {
             <p style={{ color: '#4B3B30' }}>
               Подберём планировки и условия под вашу задачу — проживание, аренда, инвестиция. Расскажем о корпусах, этажах, типах отделки и сроках.
             </p>
-            <a href="https://wa.me/79124530205" target="_blank" rel="noopener noreferrer"
-              className="inline-block px-5 py-3 rounded-2xl border hover:shadow-md"
-              style={{ borderColor: '#D4A373', color: '#2B2118' }}>Связаться в WhatsApp</a>
+            <button type="button" disabled className="inline-block px-5 py-3 rounded-2xl border opacity-70 cursor-not-allowed" style={{ borderColor: '#D4A373', color: '#2B2118' }}>Связаться в WhatsApp</button>
           </div>
           <div id="cta" className="p-6 rounded-2xl border shadow"
             style={{ backgroundColor: '#FFFFFF', borderColor: '#EAD6C4' }}>
@@ -674,7 +667,8 @@ export default function App() {
             "@type": "Organization",
             "name": "ЖК «Море»",
             "url": typeof location !== "undefined" ? location.href : "https://example.com/",
-            "sameAs": ["https://wa.me/79124530205"],
+            "telephone": "88005505120",
+            "sameAs": [],
             "address": {
               "@type": "PostalAddress",
               "addressLocality": "Евпатория",
